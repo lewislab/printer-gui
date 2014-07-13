@@ -1,0 +1,47 @@
+from enaml.widgets.api import (Window, Field, Label, Container,
+                               PushButton, FileDialogEx)
+from enaml.layout.api import vbox, hbox, align
+
+enamldef View(Window): window:
+
+    attr model
+    attr path = '/users/jack/'
+
+    Container:
+        constraints = [
+            vbox(
+                connect,
+                hbox(lbl, fld, pb),
+                bb
+            ),
+            align('v_center', lbl, fld, pb),
+            pb.height == fld.height,
+        ]
+        Label: lbl:
+            text = 'File'
+        Field: fld:
+            read_only = True
+            text << model.path
+        PushButton: pb:
+            text = 'Browse'
+            clicked ::
+                path = FileDialogEx.get_open_file_name(window)
+                if path:
+                    model.path = path
+        PushButton: bb:
+            text << 'Print' if not model.paused else 'Resume'
+            enabled << len(model.buffer) > 0
+            clicked ::
+                model.empty_buffer()
+        Container: connect:
+            constraints = [
+                hbox(port, baudrate, pbconnect),
+            ]
+            Field: port:
+                text >> model.port
+            Field: baudrate:
+                text >> model.baudrate
+            PushButton: pbconnect:
+                text = 'Connect'
+                clicked ::
+                    model.connect()
